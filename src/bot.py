@@ -14,28 +14,30 @@ storage = [
     }
 ]
 
-def sendWebook(img, postLink, postTitle, time, author, author_link, subreddit):
+
+def sendWebook(img, post_link, post_title, time, author, author_link, subreddit):
     webhook = ""
     headers = {"Content-Type": "application/json"}
     data = {
-    "username": "reddit-nsfw-bot",
-    "embeds": [
+        "username": "reddit-nsfw-bot",
+        "embeds": [
             {
-                "colour": 16711823,
-                "description": f"[link to post]({postLink}) " + ' ' +  "[" + author + "]" + '(' + author_link + ')' + ' ' + subreddit,
+                "color": 16711823,
+                "description": f"[Post Link]({post_link}) [{author}]({author_link}) in {subreddit}",
                 "author": {
-                    "name": postTitle
+                    "name": post_title
                 },
                 "timestamp": time,
                 "image": {"url": img},
                 "footer": {
-                    "text": "Discord webhook bot created by @hax4dayz",
+                    "text": "Discord Webhook Bot created by @hax4dayz",
                     "icon_url": "https://i.imgur.com/3b6BhDa.jpg"
                 }
             }
         ]
     }
     requests.post(webhook, headers=headers, data=json.dumps(data))
+
 
 def getXMLData(url):
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -45,6 +47,7 @@ def getXMLData(url):
         return False
     xml = xmltodict.parse(r.text)
     return xml
+
 
 def parseDict(xml):
     # image, user_tag, user_link, post_link, post_title, post_time, subreddit
@@ -56,7 +59,6 @@ def parseDict(xml):
     post_time = []
     post_id = []
 
-    
     for posts in range(concurrentposts):
         # this grabs the raw link from the converted dict
         # I know that this is really bad code. Could be done better
@@ -65,20 +67,20 @@ def parseDict(xml):
         end_index_image = content.find('">[link]</a>')
         image = content[start_index_image:end_index_image]
         image_link.append(image)
-        #author name
+        # author name
         author_name.append(xml['feed']['entry'][posts]['author']['name'])
-        #author link
+        # author link
         author_link.append(xml['feed']['entry'][posts]['author']['uri'])
-        #post link
+        # post link
         post_link.append(xml['feed']['entry'][posts]['link']['@href'])
-        #post title
+        # post title
         post_title.append(xml['feed']['entry'][posts]['title'])
-        #post time
+        # post time
         post_time.append(xml['feed']['entry'][posts]['published'])
-        #post id
+        # post id
         post_id.append(xml['feed']['entry'][posts]['id'])
 
-    #subreddit
+    # subreddit
     subreddit = xml['feed']['category']['@label']
 
     return image_link, author_name, author_link, post_link, post_title, post_time, post_id, subreddit
@@ -87,6 +89,7 @@ def parseDict(xml):
 # Function to check if a post has already been sent
 def is_post_sent(post_id):
     return post_id in sent_posts
+
 
 # Function to mark a post as sent
 def mark_post_as_sent(post_id):
