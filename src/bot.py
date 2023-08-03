@@ -1,4 +1,4 @@
-import requests, json, xmltodict, time
+import requests, json, xmltodict, time, os
 
 sent_posts = set()
 concurrentposts = 8
@@ -16,7 +16,7 @@ storage = [
 
 
 def sendWebook(img, post_link, post_title, time, author, author_link, subreddit):
-    webhook = ""
+    webhook = f"{os.environ['WEBHOOK']}"
     headers = {"Content-Type": "application/json"}
     data = {
         "username": "reddit-nsfw-bot",
@@ -66,19 +66,40 @@ def parseDict(xml):
         start_index_image = content.find('<span><a href="') + len('<span><a href="')
         end_index_image = content.find('">[link]</a>')
         image = content[start_index_image:end_index_image]
-        image_link.append(image)
+        try:
+            image_link.append(image)
+        except:
+            image_link.append('https://cdn.discordapp.com/attachments/649724928542900264/1136450767771942942/resourceNotFound.png')
         # author name
-        author_name.append(xml['feed']['entry'][posts]['author']['name'])
+        try:
+            author_name.append(xml['feed']['entry'][posts]['author']['name'])
+        except:
+            author_name.append('Something went wrong')
         # author link
-        author_link.append(xml['feed']['entry'][posts]['author']['uri'])
+        try:
+            author_link.append(xml['feed']['entry'][posts]['author']['uri'])
+        except:
+            author_link.append('google.com')
         # post link
-        post_link.append(xml['feed']['entry'][posts]['link']['@href'])
+        try:
+            post_link.append(xml['feed']['entry'][posts]['link']['@href'])
+        except:
+            post_link.append('google.com')
         # post title
-        post_title.append(xml['feed']['entry'][posts]['title'])
+        try:
+            post_title.append(xml['feed']['entry'][posts]['title'])
+        except:
+            post_title.append('Something went wrong')
         # post time
-        post_time.append(xml['feed']['entry'][posts]['published'])
+        try:
+            post_time.append(xml['feed']['entry'][posts]['published'])  
+        except:
+            post_time.append('Something went wrong')
         # post id
-        post_id.append(xml['feed']['entry'][posts]['id'])
+        try:
+            post_id.append(xml['feed']['entry'][posts]['id'])
+        except:
+            post_id.append('Something went wrong')
 
     # subreddit
     subreddit = xml['feed']['category']['@label']
@@ -103,5 +124,7 @@ while True:
         for i in range(concurrentposts):
             if is_post_sent(g[i]) == False:
                 sendWebook(a[i], d[i], e[i], f[i], b[i], c[i], h)
+                print(f'sent post:', g[i], 'from', h, 'subreddit')
                 mark_post_as_sent(g[i])
+    print('No more posts, waiting 10 minutes')
     time.sleep(600)
